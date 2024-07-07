@@ -1,0 +1,211 @@
+import "./index.css";
+import { Component, createRef } from "react";
+
+class App extends Component {
+  constructor(props) {
+    super(props);
+    this.state = {
+      id: 0,
+      task: [],
+      complete_task: [],
+      inComplete_task: [],
+    };
+    this.input_ref = createRef();
+    this.time = createRef();
+  }
+
+  add_text = (event) => {
+    event.preventDefault();
+    let input = this.input_ref.current;
+    let time = this.time.current;
+    let Time = time.value;
+    let text = input.value.trim();
+    if (text.length < 1) {
+      alert(`please enter the task`);
+      input.focus();
+      return;
+    }
+    if (Time.length < 1) {
+      alert(`please select the time`);
+      return;
+    }
+
+    let obj = {
+      id: this.state.id,
+      text: text,
+      time: Time,
+      complete: false,
+      delay: false,
+    };
+    this.setState(
+      (prev) => ({
+        task: [...prev.task, obj],
+        id: prev.id + 1,
+      }),
+      () => {
+        this.updateTask();
+      }
+    );
+    input.value = "";
+    time.value = "";
+    input.focus();
+  };
+
+  checked = (event) => {
+    const Id = event.target.id;
+    console.log(Id)
+
+    this.setState(
+      (prev) => ({
+        task: prev.task.map((item) => {
+          if (item.id == Id) {
+            console.log(item.Id)
+            return { ...item, complete: !item.complete };
+          }
+          return item;
+        }),
+      }),
+      () => {
+        this.updateTask();
+      }
+    );
+  };
+
+  componentDidMount() {
+    let id = localStorage.getItem("id");
+    let tasks = localStorage.getItem("task");
+    if (tasks) {
+      let task = JSON.parse(tasks);
+      this.setState(
+        {
+          task: task,
+          id: id ? parseInt(id, 10) : 0,
+        },
+        () => {
+          this.updateTask();
+        }
+      );
+    }
+  }
+
+  componentDidUpdate(prevProps, prevState) {
+    if (prevState.task !== this.state.task) {
+      this.updateTask();
+    }
+  }
+
+  updateTask = () => {
+    this.setState(
+      {
+        complete_task: this.state.task.filter((item) => item.complete),
+        inComplete_task: this.state.task.filter((item) => !item.complete),
+      },
+      () => {
+        localStorage.setItem("task", JSON.stringify(this.state.task));
+        localStorage.setItem("id", this.state.id);
+      }
+    );
+  };
+
+  remove = (id) => {
+    this.setState(
+      (prev) => ({
+        task: prev.task.filter((_, i) => i !== id),
+      }),
+      () => {
+        this.updateTask();
+      }
+    );
+  };
+
+
+
+  render() {
+    console.log(this.state.task)
+    return (
+      <div className="w-2/3 flex flex-col gap-4 bg-gray-800 px-10 py-5 rounded-lg">
+        <div>
+          <div className="flex w-full mb-2">
+            <input ref={this.input_ref} className="w-full px-2 rounded-l-lg" />
+            <button
+              onClick={this.add_text}
+              className="text-white text-3xl font-semibold rounded-r-lg bg-blue-500 px-4  flex justify-center items-center pb-1"
+            >
+              +
+            </button>
+          </div>
+          <div>
+            <span className="text-xl font-medium text-white">Time</span>
+            <input
+              ref={this.time}
+              className="ml-2 rounded-lg px-2"
+              type="time"
+            />
+          </div>
+        </div>
+        <div className="flex flex-col"></div>
+        {this.state.inComplete_task.map((item, i) => (
+          <div className="w-full mb-2 flex gap-2" key={i}>
+            <input id={item.id} checked={item.complete} onChange={this.checked} type="checkbox" />
+            <input
+              className="w-full px-2 text-lg font-semibold rounded-lg"
+              value={item.text}
+              checked={item.complete}
+              readOnly
+            />
+            <div className="text-lg bg-green-700 font-semibold px-2 rounded-lg">{item.time}</div>
+            <button className="text-lg bg-green-700 font-semibold px-2 rounded-lg">
+              Edit
+            </button>
+            <button
+              onClick={() => this.remove(i)}
+              className="bg-red-600 px-2 rounded-lg"
+            >
+              <img
+                className="w-4"
+                src="https://static-00.iconduck.com/assets.00/trash-icon-462x512-njvey5nf.png"
+                alt="Delete"
+              />
+            </button>
+          </div>
+        ))}
+        <span className="text-xl font-medium text-white">Completed Task : </span>
+        <div>
+          {this.state.complete_task.map((item, i) => (
+            <div className="w-full mb-2 flex gap-2" key={i}>
+              <input
+                id={item.id}
+                checked={item.complete}
+                onChange={this.checked}
+                type="checkbox"
+              />
+              <input
+                className="w-full px-2 text-lg font-semibold rounded-lg line-through"
+                value={item.text}
+                readOnly
+              />
+                          <div className="text-lg bg-green-700 font-semibold px-2 rounded-lg">{item.time}</div>
+              <button className="text-lg bg-green-700 font-semibold px-2 rounded-lg">
+                Edit
+              </button>
+              <button
+                onClick={() => this.remove(i)}
+                className="bg-red-600 px-2 rounded-lg"
+              >
+                <img
+                  className="w-4"
+                  src="https://static-00.iconduck.com/assets.00/trash-icon-462x512-njvey5nf.png"
+                  alt="Delete"
+                />
+              </button>
+            </div>
+          ))}
+        </div>
+        <span className="text-xl font-medium text-white">Delay Task : </span>
+        <div></div>
+      </div>
+    );
+  }
+}
+
+export default App;
