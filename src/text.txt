@@ -146,21 +146,16 @@ editTask=(event)=>{
   let element = document.getElementById("change")
 console.log(element.value)
   this.setState({
-    task:this.state.task.map((item)=>item.id==id?{...item,edit:!item.edit}:item)
+    task:this.state.task.map((item)=>item.id==id?item.edit?{...item,edit:false}:{...item,edit:true}:item)
   },()=>{
-    this.updateTask();
+    console.log(this.state.task)
   })
-  let new_text=element.value.trim()
-  this.setState((prev)=>({
-    task:prev.task.map((item)=>item.id==id?{...item,text:new_text}:item)
-  }))
   
 }
-
  render() {
     this.timeExceed()
     console.log(this.state.task)
-
+    console.log(this.state.log)
     return (
       <>
       <div className=" flex flex-col gap-4 bg-gray-800 px-10 py-5 rounded-lg">
@@ -189,12 +184,14 @@ console.log(element.value)
             <input
             id="change"
               className="w-full px-2 text-lg font-semibold rounded-lg"
-              disabled={!item.edit}
+              disabled={item.edit}
               defaultValue={item.text}
+              checked={item.complete}
+              readOnly
             />
             <div className="text-lg bg-green-700 font-semibold px-2 rounded-lg">{item.time}</div>
             <button id={item.id} onClick={this.editTask}  className="text-lg bg-green-700 font-semibold px-2 rounded-lg">
-              {item.edit?"Save": "Edit"}
+              Edit
             </button>
             <button
               onClick={() => this.remove(i)}
@@ -223,7 +220,9 @@ console.log(element.value)
                 value={item.text}
                 readOnly/>
               <div className="text-lg bg-green-700 font-semibold px-2 rounded-lg">{item.time}</div>
-             
+              <button id={item.edit} className="text-lg bg-green-700 font-semibold px-2 rounded-lg">
+                Edit
+              </button>
               <button
                 onClick={() => this.remove(i)}
                 className="bg-red-600 px-2 rounded-lg">
