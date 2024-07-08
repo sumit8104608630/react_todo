@@ -20,9 +20,7 @@ function Login(){
        setObj((prev)=>[...prev,user])
         setPassword("");
         setUsername("");
-       
             localStorage.setItem("user",JSON.stringify(users))
-
       };
    
  
@@ -30,6 +28,7 @@ function Login(){
      if(register){
         return<Registers/>
      }
+     console.log(register)
       console.log(users)
     return(<div className="flex  px-5 rounded-lg flex-col w-max justify-center items-center bg-gray-800 ">
         <h1 className="text-white my-2 font-semibold">Register</h1>

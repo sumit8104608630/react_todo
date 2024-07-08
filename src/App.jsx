@@ -57,7 +57,7 @@ class App extends Component {
   };
 
   checked = (event) => {
-    const Id = event.target.id;
+    const Id = event.target.className;
     console.log(Id)
 
     this.setState(
@@ -98,6 +98,7 @@ class App extends Component {
     if (prevState.task !== this.state.task) {
       this.updateTask();
     }
+   
  
   }
 
@@ -111,7 +112,7 @@ class App extends Component {
         }),
         inComplete_task: this.state.task.filter((item) => !item.complete&&!item.delay),
         delay_task:this.state.task.filter((item)=>{
-          if(item.delay){
+          if(item.delay&&!item.complete){
             return item
           }
         })
@@ -137,13 +138,8 @@ class App extends Component {
 
 logOut=()=>{
   this.setState((prev)=>({
-    log:prev.log=!this.state.log
-  }),()=>{
-    console.log(this.state.log)
-    if(this.state.log==true){
-      return <Register/>
-    }
-  }
+    log:!prev.log
+  })
 )
 }
 timeExceed=()=>{
@@ -158,26 +154,37 @@ timeExceed=()=>{
 
 
 editTask=(event)=>{
-  const id = parseInt(event.target.id, 10); 
-  let element = document.getElementById("change")
-  let time=document.getElementById("time")
+  const id = parseInt(event.target.id); 
+  let element = document.getElementById(id)
+  //let time=document.getElementById("time")
+  console.log(element)
 console.log(element.value)
-  this.setState({
-    task:this.state.task.map((item)=>item.id==id?{...item,edit:!item.edit,}:item)
-  },()=>{
-    this.updateTask();
+  this.setState((prev)=>({
+    task:prev.task.map((item)=>item.id==id?{...item,edit:!item.edit,}:item)
+  }),()=>{
+    this.updateTask()
   })
   let new_text=element.value.trim()
   this.setState((prev)=>({
-    task:prev.task.map((item)=>item.id==id?{...item,text:new_text,time:time.value}:item)
-  }))
-  
+    task:prev.task.map((item)=>item.id==id?{...item,text:new_text}:item)
+  }),()=>{
+    this.updateTask()
+  }
+)
+}
+setCompletionDateTime = (e, {id}) => {
+  this.setState({
+    task: this.state.task.map(item => item.id == id ? {...item, time: e.target.value} : {...item})
+  },()=>{
+    this.updateTask()
+  })
 }
 
 
-
  render() {
-    
+     if(this.state.log){
+      return<Register/>
+    }
     console.log(this.state.task)
     console.log(this.state.delay_task)
 
@@ -205,18 +212,18 @@ console.log(element.value)
         <div className="flex flex-col"></div>
         {this.state.inComplete_task.map((item, i) => (
           <div className="w-full mb-2 flex gap-2" key={i}>
-            <input id={item.id}  checked={item.complete} onChange={this.checked} type="checkbox" />
+            <input className={item.id}  checked={item.complete} onChange={this.checked} type="checkbox" />
             <input
-            id="change"
-              className="w-full px-2  text-2xl font-semibold rounded-lg"
+            id={item.id}
+              className="w-full px-2 text-2xl font-semibold rounded-lg"
               disabled={!item.edit}
               defaultValue={item.text}
             />
             <div className="text-lg bg-green-700 font-semibold px-2 rounded-lg">
               <input className="my-2 bg-transparent" type="datetime-local"
               id="time"
-               defaultValue={item.time} 
-               disabled={!item.edit}
+               value={item.time} 
+               onChange={(e) => this.setCompletionDateTime(e, item)}
                />
               </div>
             <button id={item.id} onClick={this.editTask}  className="text-lg bg-green-700 font-semibold px-4 rounded-lg">
@@ -249,7 +256,7 @@ console.log(element.value)
           {this.state.complete_task.map((item, i) => (
             <div className="w-full mb-2 flex gap-2" key={i}>
               <input
-                id={item.id}
+                className={item.id}
                 checked={item.complete}
                 onChange={this.checked}
                 type="checkbox"
@@ -258,13 +265,13 @@ console.log(element.value)
                 className="w-full px-2 text-lg font-semibold rounded-lg line-through"
                 value={item.text}
                 readOnly/>
-              <div className="text-lg bg-green-700 font-semibold px-2 rounded-lg">{item.time}</div>
+              <div className="text-lg bg-green-700 font-semibold px-2 rounded-lg"><input  className="my-2 bg-transparent" type="datetime-local" value={item.time}></input></div>
              
               <button
                 onClick={() => this.remove(i)}
                 className="bg-red-600 px-2 rounded-lg">
                 <img
-                  className="w-4"
+                  className="w-10"
                   src="https://static-00.iconduck.com/assets.00/trash-icon-462x512-njvey5nf.png"
                   alt="Delete"
                 />
@@ -272,22 +279,29 @@ console.log(element.value)
             </div>
           ))}
         </div>
+
+
+
         <span className="text-xl font-medium text-white">Delay Task : </span>
+
+
+
+         
         <div> {this.state.delay_task.map((item, i) => (
           <div className="w-full mb-2 flex gap-2" key={i}>
-            <input id={item.id}  checked={item.complete} onChange={this.checked} type="checkbox" />
+            <input className={item.id}  checked={item.complete} onChange={this.checked} type="checkbox" />
             <input
-            id="change"
-              className="w-full px-2  text-2xl font-semibold rounded-lg"
+            id={item.id}
+            className="w-full px-2  text-2xl font-semibold rounded-lg"
               disabled={!item.edit}
               defaultValue={item.text}
             />
             <div className="text-lg bg-green-700 font-semibold px-2 rounded-lg">
             <input className="my-2 bg-transparent" type="datetime-local"
               id="time"
-               defaultValue={item.time} 
-               disabled={!item.edit}
-               />
+              value={item.time} 
+              onChange={(e) => this.setCompletionDateTime(e, item)}
+              />
               </div>
             <button id={item.id} onClick={this.editTask}  className="text-lg bg-green-700 font-semibold px-4 rounded-lg">
               {item.edit?"Save": "Edit"}
