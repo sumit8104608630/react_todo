@@ -11,6 +11,7 @@ class App extends Component {
       task: [],
       complete_task: [],
       inComplete_task: [],
+      delay_task:[],
     };
     this.input_ref = createRef();
     this.time = createRef();
@@ -37,6 +38,7 @@ class App extends Component {
       text: text,
       edit:false,
       time: Time,
+      timeEdit:false,
       complete: false,
       delay: false,
     };
@@ -89,25 +91,37 @@ class App extends Component {
         }
       );
     }
+  setInterval(this.timeExceed,1000)
   }
 
   componentDidUpdate(prevProps, prevState) {
     if (prevState.task !== this.state.task) {
       this.updateTask();
     }
+ 
   }
 
   updateTask = () => {
     this.setState(
       {
-        complete_task: this.state.task.filter((item) => item.complete),
-        inComplete_task: this.state.task.filter((item) => !item.complete),
+        complete_task: this.state.task.filter((item) => {
+          if(item.complete){
+            return item
+          }
+        }),
+        inComplete_task: this.state.task.filter((item) => !item.complete&&!item.delay),
+        delay_task:this.state.task.filter((item)=>{
+          if(item.delay){
+            return item
+          }
+        })
       },
       () => {
         localStorage.setItem("task", JSON.stringify(this.state.task));
         localStorage.setItem("id", this.state.id);
       }
     );
+  
   };
 
   remove = (id) => {
@@ -133,33 +147,39 @@ logOut=()=>{
 )
 }
 timeExceed=()=>{
-  let times=this.state.task.map((item)=>{
-    return item.time
+ this.setState((prev)=>({
+  task:prev.task.map((item)=>{
+     return new Date()-new Date(`${item.time}`)>0?{...item,delay:true}:{...item,delay:false}
   })
-  let currentTime=Date.now()
-  console.log(currentTime)
-  console.log(times)
+ }),()=>{
+  this.updateTask()
+ })
 }
+
 
 editTask=(event)=>{
   const id = parseInt(event.target.id, 10); 
   let element = document.getElementById("change")
+  let time=document.getElementById("time")
 console.log(element.value)
   this.setState({
-    task:this.state.task.map((item)=>item.id==id?{...item,edit:!item.edit}:item)
+    task:this.state.task.map((item)=>item.id==id?{...item,edit:!item.edit,}:item)
   },()=>{
     this.updateTask();
   })
   let new_text=element.value.trim()
   this.setState((prev)=>({
-    task:prev.task.map((item)=>item.id==id?{...item,text:new_text}:item)
+    task:prev.task.map((item)=>item.id==id?{...item,text:new_text,time:time.value}:item)
   }))
   
 }
 
+
+
  render() {
-    this.timeExceed()
+    
     console.log(this.state.task)
+    console.log(this.state.delay_task)
 
     return (
       <>
@@ -178,22 +198,28 @@ console.log(element.value)
             <input
               ref={this.time}
               className="ml-2 rounded-lg px-2"
-              type="time"
+              type="datetime-local"
             />
           </div>
         </div>
         <div className="flex flex-col"></div>
         {this.state.inComplete_task.map((item, i) => (
           <div className="w-full mb-2 flex gap-2" key={i}>
-            <input id={item.id} checked={item.complete} onChange={this.checked} type="checkbox" />
+            <input id={item.id}  checked={item.complete} onChange={this.checked} type="checkbox" />
             <input
             id="change"
-              className="w-full px-2 text-lg font-semibold rounded-lg"
+              className="w-full px-2  text-2xl font-semibold rounded-lg"
               disabled={!item.edit}
               defaultValue={item.text}
             />
-            <div className="text-lg bg-green-700 font-semibold px-2 rounded-lg">{item.time}</div>
-            <button id={item.id} onClick={this.editTask}  className="text-lg bg-green-700 font-semibold px-2 rounded-lg">
+            <div className="text-lg bg-green-700 font-semibold px-2 rounded-lg">
+              <input className="my-2 bg-transparent" type="datetime-local"
+              id="time"
+               defaultValue={item.time} 
+               disabled={!item.edit}
+               />
+              </div>
+            <button id={item.id} onClick={this.editTask}  className="text-lg bg-green-700 font-semibold px-4 rounded-lg">
               {item.edit?"Save": "Edit"}
             </button>
             <button
@@ -201,14 +227,24 @@ console.log(element.value)
               className="bg-red-600 px-2 rounded-lg"
             >
               <img
-                className="w-4"
+                className="w-10"
                 src="https://static-00.iconduck.com/assets.00/trash-icon-462x512-njvey5nf.png"
                 alt="Delete"
               />
             </button>
           </div>
         ))}
+
+
+
+
+
+
         <span className="text-xl font-medium text-white">Completed Task : </span>
+
+
+
+
         <div>
           {this.state.complete_task.map((item, i) => (
             <div className="w-full mb-2 flex gap-2" key={i}>
@@ -237,6 +273,37 @@ console.log(element.value)
           ))}
         </div>
         <span className="text-xl font-medium text-white">Delay Task : </span>
+        <div> {this.state.delay_task.map((item, i) => (
+          <div className="w-full mb-2 flex gap-2" key={i}>
+            <input id={item.id}  checked={item.complete} onChange={this.checked} type="checkbox" />
+            <input
+            id="change"
+              className="w-full px-2  text-2xl font-semibold rounded-lg"
+              disabled={!item.edit}
+              defaultValue={item.text}
+            />
+            <div className="text-lg bg-green-700 font-semibold px-2 rounded-lg">
+            <input className="my-2 bg-transparent" type="datetime-local"
+              id="time"
+               defaultValue={item.time} 
+               disabled={!item.edit}
+               />
+              </div>
+            <button id={item.id} onClick={this.editTask}  className="text-lg bg-green-700 font-semibold px-4 rounded-lg">
+              {item.edit?"Save": "Edit"}
+            </button>
+            <button
+              onClick={() => this.remove(i)}
+              className="bg-red-600 px-2 rounded-lg"
+            >
+              <img
+                className="w-10"
+                src="https://static-00.iconduck.com/assets.00/trash-icon-462x512-njvey5nf.png"
+                alt="Delete"
+              />
+            </button>
+          </div>
+        ))}</div>
         <div ><button onClick={this.logOut} className="font-bold text-white px-4 py-2 bg-blue-500 rounded-lg my-2">Log-Out</button></div>
 
       </div>
