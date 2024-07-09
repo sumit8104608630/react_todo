@@ -2,16 +2,17 @@ import "./index.css";
 import { Component, createRef } from "react";
 //import Login from "./Log-in";
 import Register from "./Register";
+
 class App extends Component {
   constructor(props) {
     super(props);
     this.state = {
-      log:false,
+      log: false,
       id: 0,
       task: [],
       complete_task: [],
       inComplete_task: [],
-      delay_task:[],
+      delay_task: [],
     };
     this.input_ref = createRef();
     this.time = createRef();
@@ -36,9 +37,9 @@ class App extends Component {
     let obj = {
       id: this.state.id,
       text: text,
-      edit:false,
+      edit: false,
       time: Time,
-      timeEdit:false,
+      timeEdit: false,
       complete: false,
       delay: false,
     };
@@ -57,14 +58,12 @@ class App extends Component {
   };
 
   checked = (event) => {
-    const Id = event.target.className;
-    console.log(Id)
+    const Id = event.target.dataset.id;
 
     this.setState(
       (prev) => ({
         task: prev.task.map((item) => {
           if (item.id == Id) {
-            console.log(item.Id)
             return { ...item, complete: !item.complete };
           }
           return item;
@@ -91,44 +90,33 @@ class App extends Component {
         }
       );
     }
-  setInterval(this.timeExceed,1000)
+    setInterval(this.timeExceed, 1000);
   }
 
   componentDidUpdate(prevProps, prevState) {
     if (prevState.task !== this.state.task) {
       this.updateTask();
     }
-   
- 
   }
 
   updateTask = () => {
     this.setState(
       {
-        complete_task: this.state.task.filter((item) => {
-          if(item.complete){
-            return item
-          }
-        }),
-        inComplete_task: this.state.task.filter((item) => !item.complete&&!item.delay),
-        delay_task:this.state.task.filter((item)=>{
-          if(item.delay&&!item.complete){
-            return item
-          }
-        })
+        complete_task: this.state.task.filter((item) => item.complete),
+        inComplete_task: this.state.task.filter((item) => !item.complete && !item.delay),
+        delay_task: this.state.task.filter((item) => item.delay && !item.complete),
       },
       () => {
         localStorage.setItem("task", JSON.stringify(this.state.task));
         localStorage.setItem("id", this.state.id);
       }
     );
-  
   };
 
   remove = (id) => {
     this.setState(
       (prev) => ({
-        task: prev.task.filter((_, i) => i !== id),
+        task: prev.task.filter((item) => item.id !== id),
       }),
       () => {
         this.updateTask();
@@ -136,140 +124,108 @@ class App extends Component {
     );
   };
 
-logOut=()=>{
-  this.setState((prev)=>({
-    log:!prev.log
-  })
-)
-}
-timeExceed=()=>{
- this.setState((prev)=>({
-  task:prev.task.map((item)=>{
-     return new Date()-new Date(`${item.time}`)>0?{...item,delay:true}:{...item,delay:false}
-  })
- }),()=>{
-  this.updateTask()
- })
-}
+  logOut = () => {
+    this.setState((prev) => ({
+      log: !prev.log,
+    }));
+  };
 
+  timeExceed = () => {
+    this.setState(
+      (prev) => ({
+        task: prev.task.map((item) =>
+          new Date() - new Date(item.time) > 0 ? { ...item, delay: true } : { ...item, delay: false }
+        ),
+      }),
+      () => {
+        this.updateTask();
+      }
+    );
+  };
 
-editTask=(event)=>{
-  const id = parseInt(event.target.id); 
-  let element = document.getElementById(id)
-  //let time=document.getElementById("time")
-  console.log(element)
-console.log(element.value)
-  this.setState((prev)=>({
-    task:prev.task.map((item)=>item.id==id?{...item,edit:!item.edit,}:item)
-  }),()=>{
-    this.updateTask()
-  })
-  let new_text=element.value.trim()
-  this.setState((prev)=>({
-    task:prev.task.map((item)=>item.id==id?{...item,text:new_text}:item)
-  }),()=>{
-    this.updateTask()
-  }
-)
-}
-setCompletionDateTime = (e, {id}) => {
-  this.setState({
-    task: this.state.task.map(item => item.id == id ? {...item, time: e.target.value} : {...item})
-  },()=>{
-    this.updateTask()
-  })
-}
+  editTask = (event) => {
+    const id = parseInt(event.target.id);
+    let element = document.getElementById(`task-${id}`);
 
+    this.setState(
+      (prev) => ({
+        task: prev.task.map((item) => (item.id == id ? { ...item, edit: !item.edit, text: element.value.trim() } : item)),
+      }),
+      () => {
+        this.updateTask();
+      }
+    );
+  };
 
- render() {
-     if(this.state.log){
-      return<Register/>
+  setCompletionDateTime = (e, id) => {
+    this.setState(
+      {
+        task: this.state.task.map((item) => (item.id == id ? { ...item, time: e.target.value } : item)),
+      },
+      () => {
+        this.updateTask();
+      }
+    );
+  };
+
+  render() {
+    if (this.state.log) {
+      return <Register />;
     }
-    console.log(this.state.task)
-    console.log(this.state.delay_task)
 
     return (
       <>
-      <div className=" flex flex-col gap-4 bg-gray-800 px-10 py-5 rounded-lg">
-        <div>
-          <div className="flex w-full mb-2">
-            <input ref={this.input_ref} className="w-full px-2 rounded-l-lg" />
-            <button
-              onClick={this.add_text}
-              className="text-white text-3xl font-semibold rounded-r-lg bg-blue-500 px-4  flex justify-center items-center pb-1">
-              +
-            </button>
-          </div>
+        <div className=" flex flex-col gap-4 bg-gray-800 px-10 py-5 rounded-lg">
+          <h1 className="flex justify-center items-center text-lg font-semibold text-white">Todo</h1>
           <div>
-            <span className="text-xl font-medium text-white">Time</span>
-            <input
-              ref={this.time}
-              className="ml-2 rounded-lg px-2"
-              type="datetime-local"
-            />
+            <div className="flex w-full mb-2">
+              <input ref={this.input_ref} className="w-full px-2 rounded-l-lg" />
+              <button
+                onClick={this.add_text}
+                className="text-white text-3xl font-semibold rounded-r-lg bg-blue-500 px-4  flex justify-center items-center pb-1"
+              >
+                +
+              </button>
+            </div>
+            <div>
+              <span className="text-xl font-medium text-white">Time</span>
+              <input ref={this.time} className="ml-2 rounded-lg px-2" type="datetime-local" />
+            </div>
           </div>
-        </div>
-        <div className="flex flex-col"></div>
-        {this.state.inComplete_task.map((item, i) => (
-          <div className="w-full mb-2 flex gap-2" key={i}>
-            <input className={item.id}  checked={item.complete} onChange={this.checked} type="checkbox" />
-            <input
-            id={item.id}
-              className="w-full px-2 text-2xl font-semibold rounded-lg"
-              disabled={!item.edit}
-              defaultValue={item.text}
-            />
-            <div className="text-lg bg-green-700 font-semibold px-2 rounded-lg">
-              <input className="my-2 bg-transparent" type="datetime-local"
-              id="time"
-               value={item.time} 
-               onChange={(e) => this.setCompletionDateTime(e, item)}
-               />
-              </div>
-            <button id={item.id} onClick={this.editTask}  className="text-lg bg-green-700 font-semibold px-4 rounded-lg">
-              {item.edit?"Save": "Edit"}
-            </button>
-            <button
-              onClick={() => this.remove(i)}
-              className="bg-red-600 px-2 rounded-lg"
-            >
-              <img
-                className="w-10"
-                src="https://static-00.iconduck.com/assets.00/trash-icon-462x512-njvey5nf.png"
-                alt="Delete"
-              />
-            </button>
-          </div>
-        ))}
-
-
-
-
-
-
-        <span className="text-xl font-medium text-white">Completed Task : </span>
-
-
-
-
-        <div>
-          {this.state.complete_task.map((item, i) => (
-            <div className="w-full mb-2 flex gap-2" key={i}>
+          <div className="flex flex-col"></div>
+          {this.state.inComplete_task.map((item) => (
+            <div className="w-full mb-2 flex gap-2" key={item.id}>
               <input
-                className={item.id}
+                data-id={item.id}
                 checked={item.complete}
                 onChange={this.checked}
                 type="checkbox"
               />
               <input
-                className="w-full px-2 text-lg font-semibold rounded-lg line-through"
-                value={item.text}
-                readOnly/>
-              <div className="text-lg bg-green-700 font-semibold px-2 rounded-lg"><input  className="my-2 bg-transparent" type="datetime-local" value={item.time}></input></div>
-             
+                id={`task-${item.id}`}
+                className="w-full px-2 text-2xl font-semibold rounded-lg"
+                disabled={!item.edit}
+                defaultValue={item.text}
+              />
+              <div className="text-lg bg-green-700 font-semibold px-2 rounded-lg">
+                <input
+                  className="my-2 bg-transparent"
+                  type="datetime-local"
+                  value={item.time}
+                  onChange={(e) => this.setCompletionDateTime(e, item.id)}
+                />
+              </div>
               <button
-                onClick={() => this.remove(i)}
-                className="bg-red-600 px-2 rounded-lg">
+                id={item.id}
+                onClick={this.editTask}
+                className="text-lg bg-green-700 font-semibold px-4 rounded-lg"
+              >
+                {item.edit ? "Save" : "Edit"}
+              </button>
+              <button
+                onClick={() => this.remove(item.id)}
+                className="bg-red-600 px-2 rounded-lg"
+              >
                 <img
                   className="w-10"
                   src="https://static-00.iconduck.com/assets.00/trash-icon-462x512-njvey5nf.png"
@@ -278,51 +234,90 @@ setCompletionDateTime = (e, {id}) => {
               </button>
             </div>
           ))}
-        </div>
-
-
-
-        <span className="text-xl font-medium text-white">Delay Task : </span>
-
-
-
-         
-        <div> {this.state.delay_task.map((item, i) => (
-          <div className="w-full mb-2 flex gap-2" key={i}>
-            <input className={item.id}  checked={item.complete} onChange={this.checked} type="checkbox" />
-            <input
-            id={item.id}
-            className="w-full px-2  text-2xl font-semibold rounded-lg"
-              disabled={!item.edit}
-              defaultValue={item.text}
-            />
-            <div className="text-lg bg-green-700 font-semibold px-2 rounded-lg">
-            <input className="my-2 bg-transparent" type="datetime-local"
-              id="time"
-              value={item.time} 
-              onChange={(e) => this.setCompletionDateTime(e, item)}
-              />
+          <span className="text-xl font-medium text-white">Completed Task:</span>
+          <div>
+            {this.state.complete_task.map((item) => (
+              <div className="w-full mb-2 flex gap-2" key={item.id}>
+                <input
+                  data-id={item.id}
+                  checked={item.complete}
+                  onChange={this.checked}
+                  type="checkbox"
+                />
+                <input
+                  className="w-full px-2 text-lg font-semibold rounded-lg line-through"
+                  value={item.text}
+                  readOnly
+                />
+                <div className="text-lg bg-green-700 font-semibold px-2 rounded-lg">
+                  <input className="my-2 bg-transparent" type="datetime-local" value={item.time} readOnly />
+                </div>
+                <button
+                  onClick={() => this.remove(item.id)}
+                  className="bg-red-600 px-2 rounded-lg"
+                >
+                  <img
+                    className="w-10"
+                    src="https://static-00.iconduck.com/assets.00/trash-icon-462x512-njvey5nf.png"
+                    alt="Delete"
+                  />
+                </button>
               </div>
-            <button id={item.id} onClick={this.editTask}  className="text-lg bg-green-700 font-semibold px-4 rounded-lg">
-              {item.edit?"Save": "Edit"}
-            </button>
-            <button
-              onClick={() => this.remove(i)}
-              className="bg-red-600 px-2 rounded-lg"
-            >
-              <img
-                className="w-10"
-                src="https://static-00.iconduck.com/assets.00/trash-icon-462x512-njvey5nf.png"
-                alt="Delete"
-              />
+            ))}
+          </div>
+          <span className="text-xl font-medium text-white">Delayed Task:</span>
+          <div>
+            {this.state.delay_task.map((item) => (
+              <div className="w-full mb-2 flex gap-2" key={item.id}>
+                <input
+                  data-id={item.id}
+                  checked={item.complete}
+                  onChange={this.checked}
+                  type="checkbox"
+                />
+                <input
+                  id={`task-${item.id}`}
+                  className="w-full px-2 text-2xl font-semibold rounded-lg"
+                  disabled={!item.edit}
+                  defaultValue={item.text}
+                />
+                <div className="text-lg bg-green-700 font-semibold px-2 rounded-lg">
+                  <input
+                    className="my-2 bg-transparent"
+                    type="datetime-local"
+                    value={item.time}
+                    onChange={(e) => this.setCompletionDateTime(e, item.id)}
+                  />
+                </div>
+                <button
+                  id={item.id}
+                  onClick={this.editTask}
+                  className="text-lg bg-green-700 font-semibold px-4 rounded-lg"
+                >
+                  {item.edit ? "Save" : "Edit"}
+                </button>
+                <button
+                  onClick={() => this.remove(item.id)}
+                  className="bg-red-600 px-2 rounded-lg"
+                >
+                  <img
+                    className="w-10"
+                    src="https://static-00.iconduck.com/assets.00/trash-icon-462x512-njvey5nf.png"
+                    alt="Delete"
+                  />
+                </button>
+              </div>
+            ))}
+          </div>
+          <div>
+            <button onClick={this.logOut} className="font-bold text-white px-4 py-2 bg-blue-500 rounded-lg my-2">
+              Log-Out
             </button>
           </div>
-        ))}</div>
-        <div ><button onClick={this.logOut} className="font-bold text-white px-4 py-2 bg-blue-500 rounded-lg my-2">Log-Out</button></div>
-
-      </div>
-</>
+        </div>
+      </>
     );
   }
 }
+
 export default App;
