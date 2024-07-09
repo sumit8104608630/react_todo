@@ -7,8 +7,7 @@ function Login(){
     const [register,setRegister]=useState(false)
     const[users,setObj]=useState([])
  
-        
-
+    localStorage.setItem("user",JSON.stringify(users))
     const Register=()=>{
         setRegister(true)
        }
@@ -20,7 +19,6 @@ function Login(){
        setObj((prev)=>[...prev,user])
         setPassword("");
         setUsername("");
-            localStorage.setItem("user",JSON.stringify(users))
       };
    
  
