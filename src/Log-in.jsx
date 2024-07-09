@@ -16,6 +16,14 @@ function Login(){
         password:password
        }
     const handleLogin = () => {
+        if(username===""){
+            alert("Please enter username")
+            return
+        }
+        if(password==""){
+            alert("Please enter password")
+            return
+        }
        setObj((prev)=>[...prev,user])
         setPassword("");
         setUsername("");
