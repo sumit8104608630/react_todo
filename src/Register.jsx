@@ -52,7 +52,7 @@ class Register extends Component {
     const { username, password, loged, regis } = this.state;
 
     if (loged) {
-      return <App />;
+      return <App Username= {this.state.username} />;
     }
 
     if (regis) {

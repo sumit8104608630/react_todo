@@ -176,7 +176,7 @@ class App extends Component {
     return (
       <>
         <div className=" flex flex-col gap-4 bg-gray-800 px-10 py-5 rounded-lg">
-          <h1 className="flex justify-center items-center text-lg font-semibold text-white">Todo</h1>
+          <h1 className="flex justify-center items-center text-lg font-semibold text-white">Todo {this.props.Username}</h1>
           <div>
             <div className="flex w-full mb-2">
               <input ref={this.input_ref} className="w-full px-2 rounded-l-lg" />
